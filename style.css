@@ -1,0 +1,235 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f0f0;
+    transition: background-color 0.3s ease;
+}
+
+#game-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    width: 90%;
+    max-width: 500px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+#game-container:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+#coordinate-plane {
+    width: 100%;
+    padding-bottom: 100%;
+    background-color: #f8f9fa;
+    position: relative;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    transition: border-color 0.3s ease;
+}
+
+/* Dot animations and styling */
+.dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    position: absolute;
+    transform: translate(-50%, -50%) scale(0);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    animation: dotAppear 0.5s ease forwards;
+}
+
+@keyframes dotAppear {
+    from {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+    }
+    to {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+}
+
+/* Distance line visualization */
+.distance-line {
+    position: absolute;
+    height: 2px;
+    background-color: rgba(75, 75, 75, 0.6);
+    transform-origin: left center;
+    animation: lineAppear 0.8s ease forwards;
+    pointer-events: none;
+}
+
+@keyframes lineAppear {
+    from {
+        transform: scaleX(0);
+        opacity: 0;
+    }
+    to {
+        transform: scaleX(1);
+        opacity: 1;
+    }
+}
+
+#controls {
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+#controls label {
+    margin-right: 10px;
+    color: #495057;
+    font-weight: 500;
+}
+
+#controls input[type="number"] {
+    padding: 10px;
+    border: 2px solid #ced4da;
+    border-radius: 6px;
+    width: 80px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    font-size: 16px;
+}
+
+#controls input[type="number"]:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0,123,255,0.25);
+}
+
+#controls button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+#controls button:hover {
+    background-color: #0056b3;
+    transform: translateY(-1px);
+}
+
+#controls button:active {
+    transform: translateY(1px);
+}
+
+/* Feedback styling */
+#feedback {
+    margin: 15px 0;
+    padding: 10px 15px;
+    border-radius: 6px;
+    font-size: 1.1em;
+    min-height: 2.4em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.feedback-correct {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    animation: feedbackPulse 0.5s ease;
+}
+
+.feedback-incorrect {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    animation: feedbackPulse 0.5s ease;
+}
+
+@keyframes feedbackPulse {
+    0% { transform: scale(0.95); opacity: 0; }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+#stats {
+    display: flex;
+    gap: 20px;
+    margin-top: 10px;
+}
+
+#stats p {
+    margin: 5px 0;
+    padding: 8px 12px;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    font-weight: 500;
+    color: #495057;
+}
+
+/* Game over screen animations */
+#game-over-screen {
+    text-align: center;
+    animation: fadeSlideIn 0.5s ease forwards;
+}
+
+@keyframes fadeSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Start screen styling */
+#start-screen {
+    text-align: center;
+    animation: fadeSlideIn 0.5s ease forwards;
+}
+
+#start-screen h1, #game-over-screen h1 {
+    color: #343a40;
+    margin-bottom: 20px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 400px) {
+    #controls {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    #controls input[type="number"],
+    #controls button {
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+
+    #controls label {
+        margin-bottom: 5px;
+        margin-right: 0;
+    }
+
+    #stats {
+        flex-direction: column;
+        gap: 10px;
+    }
+}

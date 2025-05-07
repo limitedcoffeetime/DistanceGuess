@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DotGuess</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <div id="start-screen" style="display: none;">
+            <h1>Welcome to DotGuess!</h1>
+            <p>Estimate the distance between the two dots.</p>
+            <button id="start-game-button">Start Game</button>
+        </div>
+
+        <div id="game-active-area" style="display: block;">
+            <div id="coordinate-plane">
+                <!-- Dots will be rendered here by JavaScript -->
+            </div>
+            <div id="controls">
+                <label for="guess-input">Enter your guess:</label>
+                <input type="number" id="guess-input" name="guess-input">
+                <button id="submit-guess">Submit</button>
+                <button id="next-problem" style="display: none;">Next</button>
+            </div>
+            <div id="feedback">
+                <!-- Feedback will be displayed here -->
+            </div>
+            <div id="stats">
+                <p>Lives: <span id="lives-count">3</span></p>
+                <p>Mean Error: <span id="mean-error">N/A</span></p>
+            </div>
+        </div>
+
+        <div id="game-over-screen" style="display: none;">
+            <h1>Game Over!</h1>
+            <p>Your final stats:</p>
+            <p>Rounds Played: <span id="final-rounds">0</span></p>
+            <p>Mean Error: <span id="final-mean-error">N/A</span></p>
+            <button id="restart-game-button">Restart Game</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
