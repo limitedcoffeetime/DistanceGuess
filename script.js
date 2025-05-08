@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const feedbackDisplay = document.getElementById('feedback');
     const livesCountDisplay = document.getElementById('lives-count');
     const meanErrorDisplay = document.getElementById('mean-error');
+    const roundCountDisplay = document.getElementById('round-count'); // Added for round count
 
     // New UI elements for states
     const startScreen = document.getElementById('start-screen');
@@ -141,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log("State: START_SCREEN");
                 break;
             case GAME_STATES.ACTIVE_GAME:
-                if (gameActiveArea) gameActiveArea.style.display = 'block';
+                if (gameActiveArea) gameActiveArea.style.display = 'flex';
                 guessInput.style.display = 'block';
                 guessInput.disabled = false;
                 guessInput.focus(); // Auto-focus on input field
@@ -155,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log("State: ACTIVE_GAME");
                 break;
             case GAME_STATES.SHOWING_FEEDBACK:
-                if (gameActiveArea) gameActiveArea.style.display = 'block';
+                if (gameActiveArea) gameActiveArea.style.display = 'flex';
                 guessInput.style.display = 'block';
                 guessInput.disabled = true;
                 submitButton.style.display = 'none';
@@ -205,6 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (meanErrorDisplay) {
             meanErrorDisplay.textContent = 'N/A';
         }
+        if(roundCountDisplay) roundCountDisplay.textContent = game.currentRoundNumber; // Update round count display
     }
 
     function initializeGame() {
@@ -218,6 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if(livesCountDisplay) livesCountDisplay.textContent = game.lives;
         if(meanErrorDisplay) meanErrorDisplay.textContent = 'N/A';
+        if(roundCountDisplay) roundCountDisplay.textContent = game.currentRoundNumber; // Initialize round count display
 
         // No need to call setupNewProblem here as initializeGameLogic starts the first round
         setGameState(GAME_STATES.START_SCREEN);

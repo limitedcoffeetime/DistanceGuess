@@ -30,6 +30,13 @@ body {
     box-shadow: 0 6px 12px rgba(0,0,0,0.15);
 }
 
+#game-active-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
 #coordinate-plane {
     width: 100%;
     aspect-ratio: 1 / 1;
@@ -213,6 +220,7 @@ body {
 /* Stats styling from good_style_bad_logic.css */
 #stats {
     display: flex;
+    justify-content: center;
     gap: 20px;
     margin-top: 10px;
 }
