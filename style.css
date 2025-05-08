@@ -7,6 +7,7 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f0f0f0;
     transition: background-color 0.3s ease;
+    overflow-y: scroll; /* Prevent layout shifts from scrollbar appearing/disappearing */
 }
 
 #game-container {
@@ -18,7 +19,9 @@ body {
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     width: 90%;
-    max-width: 500px;
+    max-width: 500px; /* Increased max-width from good_style */
+    margin-left: auto;
+    margin-right: auto;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -29,7 +32,7 @@ body {
 
 #coordinate-plane {
     width: 100%;
-    padding-bottom: 100%;
+    aspect-ratio: 1 / 1;
     background-color: #f8f9fa;
     position: relative;
     border: 2px solid #dee2e6;
@@ -37,17 +40,21 @@ body {
     margin-bottom: 20px;
     overflow: hidden;
     transition: border-color 0.3s ease;
+    max-width: 300px; /* Maintain original max size if preferred, adjust as needed */
+    margin-left: auto;
+    margin-right: auto;
 }
 
-/* Dot animations and styling */
+/* Dot animations and styling from good_style_bad_logic.css */
 .dot {
     width: 12px;
     height: 12px;
     border-radius: 50%;
     position: absolute;
-    transform: translate(-50%, -50%) scale(0);
+    transform: translate(-50%, -50%) scale(0); /* Initial state for animation */
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     animation: dotAppear 0.5s ease forwards;
+    z-index: 1; /* Ensure dots are above the line */
 }
 
 @keyframes dotAppear {
@@ -61,26 +68,43 @@ body {
     }
 }
 
-/* Distance line visualization */
+/* Distance Line Styling - Retained from original style.css as per user request */
 .distance-line {
     position: absolute;
-    height: 2px;
-    background-color: rgba(75, 75, 75, 0.6);
-    transform-origin: left center;
-    animation: lineAppear 0.8s ease forwards;
-    pointer-events: none;
+    height: 3px;
+    background-color: #888; /* Default/neutral color before guess */
+    transform-origin: 0 50%; /* Rotate around the starting point (left-center) */
+    opacity: 0;
+    animation: lineAppearAnimation 0.5s ease-out forwards 0.2s; /* Appear after dots */
+    z-index: 0; /* Ensure line is below the dots */
+    pointer-events: none; /* From good_style_bad_logic - good addition */
 }
 
-@keyframes lineAppear {
-    from {
-        transform: scaleX(0);
-        opacity: 0;
-    }
+@keyframes lineAppearAnimation {
     to {
-        transform: scaleX(1);
         opacity: 1;
     }
 }
+
+/* Animations for the line based on guess correctness - Retained from original style.css */
+.line-correct-animation {
+    animation: lineAppearAnimation 0.5s ease-out forwards, correctPulse 1s ease-in-out 0.5s;
+}
+
+.line-incorrect-animation {
+    animation: lineAppearAnimation 0.5s ease-out forwards, incorrectPulse 1s ease-in-out 0.5s;
+}
+
+@keyframes correctPulse {
+    0%, 100% { box-shadow: 0 0 8px 2px rgba(76, 175, 80, 0.7); }
+    50% { box-shadow: 0 0 12px 4px rgba(76, 175, 80, 1); }
+}
+
+@keyframes incorrectPulse {
+    0%, 100% { box-shadow: 0 0 8px 2px rgba(255, 152, 0, 0.7); }
+    50% { box-shadow: 0 0 12px 4px rgba(255, 152, 0, 1); }
+}
+
 
 #controls {
     margin-bottom: 20px;
@@ -88,13 +112,13 @@ body {
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
-    gap: 10px;
+    gap: 10px; /* From good_style_bad_logic.css */
 }
 
 #controls label {
-    margin-right: 10px;
-    color: #495057;
-    font-weight: 500;
+    margin-right: 10px; /* Can be removed if gap is sufficient */
+    color: #495057; /* From good_style_bad_logic.css */
+    font-weight: 500; /* From good_style_bad_logic.css */
 }
 
 #controls input[type="number"] {
@@ -102,70 +126,91 @@ body {
     border: 2px solid #ced4da;
     border-radius: 6px;
     width: 80px;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    font-size: 16px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease; /* From good_style_bad_logic.css */
+    font-size: 16px; /* From good_style_bad_logic.css */
 }
 
 #controls input[type="number"]:focus {
     outline: none;
     border-color: #007bff;
-    box-shadow: 0 0 0 3px rgba(0,123,255,0.25);
+    box-shadow: 0 0 0 3px rgba(0,123,255,0.25); /* From good_style_bad_logic.css */
 }
 
-#controls button {
+#controls button, #start-screen button, #game-over-screen button, #next-problem {
     padding: 10px 20px;
     border: none;
     border-radius: 6px;
     background-color: #007bff;
     color: white;
     cursor: pointer;
-    font-weight: 500;
-    transition: all 0.3s ease;
+    font-weight: 500; /* From good_style_bad_logic.css */
+    transition: all 0.3s ease; /* From good_style_bad_logic.css */
+    margin: 5px; /* Retained for spacing if needed */
 }
 
-#controls button:hover {
+#controls button:hover, #start-screen button:hover, #game-over-screen button:hover, #next-problem:hover {
     background-color: #0056b3;
-    transform: translateY(-1px);
+    transform: translateY(-1px); /* From good_style_bad_logic.css */
 }
 
-#controls button:active {
-    transform: translateY(1px);
+#controls button:active, #start-screen button:active, #game-over-screen button:active, #next-problem:active {
+    transform: translateY(1px); /* From good_style_bad_logic.css */
 }
 
-/* Feedback styling */
+/* Specific button styling if different from primary */
+#next-problem {
+    background-color: #6c757d; /* Original style for next-problem */
+}
+#next-problem:hover {
+    background-color: #545b62; /* Original hover style for next-problem */
+}
+
+
+/* Feedback styling from good_style_bad_logic.css */
 #feedback {
     margin: 15px 0;
     padding: 10px 15px;
     border-radius: 6px;
     font-size: 1.1em;
-    min-height: 2.4em;
+    height: 4em; /* Increased height for feedback area */
+    overflow-y: auto; /* Added to handle potential overflow */
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
     transition: all 0.3s ease;
+    box-sizing: border-box; /* Retained from original */
 }
 
 .feedback-correct {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-    animation: feedbackPulse 0.5s ease;
+    background-color: #d4edda; /* From good_style_bad_logic.css */
+    color: #155724; /* From good_style_bad_logic.css */
+    border: 1px solid #c3e6cb; /* From good_style_bad_logic.css */
+    animation: feedbackPulse 0.5s ease; /* From good_style_bad_logic.css */
 }
 
 .feedback-incorrect {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-    animation: feedbackPulse 0.5s ease;
+    background-color: #f8d7da; /* From good_style_bad_logic.css */
+    color: #721c24; /* From good_style_bad_logic.css */
+    border: 1px solid #f5c6cb; /* From good_style_bad_logic.css */
+    animation: feedbackPulse 0.5s ease; /* From good_style_bad_logic.css */
 }
 
-@keyframes feedbackPulse {
+/* Retained from original style.css */
+.feedback-error {
+    background-color: #fff3e0;
+    color: #e65100;
+    border: 2px solid #ffcc80; /* Original border, adjust if needed */
+}
+
+
+@keyframes feedbackPulse { /* From good_style_bad_logic.css */
     0% { transform: scale(0.95); opacity: 0; }
     50% { transform: scale(1.02); }
     100% { transform: scale(1); opacity: 1; }
 }
 
+/* Stats styling from good_style_bad_logic.css */
 #stats {
     display: flex;
     gap: 20px;
@@ -181,8 +226,8 @@ body {
     color: #495057;
 }
 
-/* Game over screen animations */
-#game-over-screen {
+/* Game over screen and Start screen styling from good_style_bad_logic.css */
+#start-screen, #game-over-screen {
     text-align: center;
     animation: fadeSlideIn 0.5s ease forwards;
 }
@@ -198,18 +243,12 @@ body {
     }
 }
 
-/* Start screen styling */
-#start-screen {
-    text-align: center;
-    animation: fadeSlideIn 0.5s ease forwards;
-}
-
 #start-screen h1, #game-over-screen h1 {
     color: #343a40;
     margin-bottom: 20px;
 }
 
-/* Responsive adjustments */
+/* Responsive adjustments from good_style_bad_logic.css */
 @media (max-width: 400px) {
     #controls {
         flex-direction: column;
@@ -217,7 +256,7 @@ body {
     }
 
     #controls input[type="number"],
-    #controls button {
+    #controls button, #start-screen button, #game-over-screen button, #next-problem { /* Applied to all relevant buttons */
         width: 100%;
         margin-right: 0;
         margin-bottom: 10px;

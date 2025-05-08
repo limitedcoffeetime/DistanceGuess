@@ -31,13 +31,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const CORRECT_ENOUGH_PERCENTAGE = 0.15;
     const INITIAL_LIVES = 3;
     const MAX_LIVES = 5;
+    const DOT_SPAWN_MARGIN = 0.05; // Added margin for dot spawning
 
     // Centralized game state object, mirroring Python's Game class
     let game = {};
 
     function generateCoordinate() {
-        // Generates a random coordinate between 0 and 1
-        return Math.random();
+        // Generates a random coordinate between 0+margin and 1-margin
+        return Math.random() * (1 - 2 * DOT_SPAWN_MARGIN) + DOT_SPAWN_MARGIN;
     }
 
     function generateDot() {
@@ -54,50 +55,71 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderDot(x, y, color, id) {
         const dotElement = document.createElement('div');
         dotElement.classList.add('dot');
+        dotElement.classList.add('dot-appear'); // Added for animation
         dotElement.id = id;
         dotElement.style.backgroundColor = color;
-        // Convert 0-1 coordinates to percentage for CSS positioning
-        dotElement.style.left = `${x * 100}%`;
-        dotElement.style.top = `${y * 100}%`;
+
+        // Get coordinate plane dimensions in pixels
+        const planeWidth = coordinatePlane.clientWidth;
+        const planeHeight = coordinatePlane.clientHeight;
+
+        // Convert relative coordinates to absolute pixels
+        const xPixels = x * planeWidth;
+        const yPixels = y * planeHeight;
+
+        // Convert 0-1 coordinates to absolute pixels for CSS positioning
+        dotElement.style.left = `${xPixels}px`;
+        dotElement.style.top = `${yPixels}px`;
         coordinatePlane.appendChild(dotElement);
         return dotElement;
     }
 
-    function clearDots() {
+    function clearProblemElements() { // Renamed from clearDots
         const existingDots = coordinatePlane.querySelectorAll('.dot');
         existingDots.forEach(dot => dot.remove());
-        // Also clear any existing distance lines
-        const existingLines = coordinatePlane.querySelectorAll('.distance-line');
-        existingLines.forEach(line => line.remove());
+        const existingLine = coordinatePlane.querySelector('.distance-line');
+        if (existingLine) {
+            existingLine.remove();
+        }
     }
 
-    function showActualDistance() {
-        const dot1 = document.getElementById('dot1');
-        const dot2 = document.getElementById('dot2');
+    function renderDistanceLine(p1, p2, isCorrectGuess) {
+        const lineElement = document.createElement('div');
+        lineElement.classList.add('distance-line');
 
-        if (!dot1 || !dot2) return;
+        // Get coordinate plane dimensions in pixels
+        const planeWidth = coordinatePlane.clientWidth;
+        const planeHeight = coordinatePlane.clientHeight;
 
-        // Create line element
-        const line = document.createElement('div');
-        line.classList.add('distance-line');
+        // Convert relative coordinates to absolute pixels
+        const x1 = p1.x * planeWidth;
+        const y1 = p1.y * planeHeight;
+        const x2 = p2.x * planeWidth;
+        const y2 = p2.y * planeHeight;
 
-        // Calculate line position and length
-        const x1 = parseFloat(dot1.style.left);
-        const y1 = parseFloat(dot1.style.top);
-        const x2 = parseFloat(dot2.style.left);
-        const y2 = parseFloat(dot2.style.top);
+        const deltaX = x2 - x1;
+        const deltaY = y2 - y1;
+        const length = Math.sqrt(deltaX * deltaX + deltaY * deltaY); // Absolute pixels
+        const angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI); // Angle in degrees
 
-        // Calculate line length and angle
-        const length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
-        const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+        lineElement.style.width = `${length}px`;
+        lineElement.style.position = 'absolute';
+        lineElement.style.left = `${x1}px`;
+        lineElement.style.top = `${y1}px`;
+        lineElement.style.transformOrigin = '0 50%'; // Rotate around the line's start-point, vertical center
+        lineElement.style.transform = `translateY(-1.5px) rotate(${angle}deg)`; // Adjust for exact half of line thickness
 
-        // Position and rotate line
-        line.style.width = `${length}%`;
-        line.style.left = `${x1}%`;
-        line.style.top = `${y1}%`;
-        line.style.transform = `rotate(${angle}deg)`;
+        // Style based on correctness
+        if (isCorrectGuess) {
+            lineElement.style.backgroundColor = 'rgba(76, 175, 80, 0.7)'; // Greenish for correct
+            lineElement.classList.add('line-correct-animation');
+        } else {
+            lineElement.style.backgroundColor = 'rgba(255, 152, 0, 0.7)'; // Orangeish for incorrect
+             lineElement.classList.add('line-incorrect-animation');
+        }
+        lineElement.style.height = '3px'; // Line thickness
 
-        coordinatePlane.appendChild(line);
+        coordinatePlane.appendChild(lineElement);
     }
 
     function updateUIForState() {
@@ -127,6 +149,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 submitButton.disabled = false;
                 nextButton.style.display = 'none';
                 feedbackDisplay.textContent = ''; // Clear previous feedback
+                feedbackDisplay.classList.remove('feedback-correct', 'feedback-incorrect', 'feedback-error'); // Reset classes
+                feedbackDisplay.style.color = ''; // Ensure text color resets if it was directly set
                 feedbackDisplay.style.display = 'block';
                 console.log("State: ACTIVE_GAME");
                 break;
@@ -157,11 +181,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         console.log(`Transitioning from ${currentGameState} to ${newState}`);
         currentGameState = newState;
+        // Clear distance line when not showing feedback or when starting a new game active state
+        if (newState !== GAME_STATES.SHOWING_FEEDBACK && coordinatePlane.querySelector('.distance-line')) {
+             const existingLine = coordinatePlane.querySelector('.distance-line');
+             if (existingLine) existingLine.remove();
+        }
         updateUIForState();
     }
 
     function setupNewProblem() {
-        clearDots();
+        clearProblemElements(); // Use renamed function
         // Dots are now generated by game.startNewRound() or game.nextRound()
         renderDot(game.currentDot1.x, game.currentDot1.y, 'red', 'dot1');
         renderDot(game.currentDot2.x, game.currentDot2.y, 'blue', 'dot2');
@@ -181,6 +210,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function initializeGame() {
         console.log("Initializing game UI and logic...");
         initializeGameLogic(); // Sets up the 'game' object with initial round
+        // Ensure no old lines persist if game is re-initialized mid-state
+        const existingLine = coordinatePlane.querySelector('.distance-line');
+        if (existingLine) {
+            existingLine.remove();
+        }
 
         if(livesCountDisplay) livesCountDisplay.textContent = game.lives;
         if(meanErrorDisplay) meanErrorDisplay.textContent = 'N/A';
@@ -197,9 +231,23 @@ document.addEventListener('DOMContentLoaded', () => {
         startGameButton.addEventListener('click', () => {
             if (currentGameState === GAME_STATES.START_SCREEN) {
                 console.log("Start Game button clicked");
-                // Game logic is already initialized, including first round's dots
-                setupNewProblem(); // Render the first problem
-                setGameState(GAME_STATES.ACTIVE_GAME);
+                // Game logic is already initialized (game.startNewRound() called in initializeGameLogic)
+                // Dots for the first round are already generated in game.currentDot1 and game.currentDot2
+                setGameState(GAME_STATES.ACTIVE_GAME); // This will make the game area visible
+
+                // Defer rendering of dots until the coordinatePlane is surely visible and has dimensions
+                requestAnimationFrame(() => {
+                    // Double-check dimensions before rendering
+                    if (coordinatePlane.clientWidth > 0 && coordinatePlane.clientHeight > 0) {
+                        setupNewProblem(); // Renders dots using the already generated coordinates
+                    } else {
+                        // Fallback if dimensions are still not ready (e.g., complex CSS or very slow rendering)
+                        console.warn("Coordinate plane dimensions not ready after rAF on start, trying setTimeout");
+                        setTimeout(() => {
+                            setupNewProblem();
+                        }, 50); // Brief delay, adjust if necessary
+                    }
+                });
             }
         });
     }
@@ -211,6 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (guessString === '' || isNaN(guessString)) {
             feedbackDisplay.textContent = "Please enter a valid number.";
             feedbackDisplay.className = 'feedback-error';
+            feedbackDisplay.style.color = ''; // Reset color to be sure CSS class takes over
             guessInput.focus();
             return;
         }
@@ -219,22 +268,34 @@ document.addEventListener('DOMContentLoaded', () => {
         if (guess < 0) {
             feedbackDisplay.textContent = "Distance cannot be negative.";
             feedbackDisplay.className = 'feedback-error';
+            feedbackDisplay.style.color = ''; // Reset color to be sure CSS class takes over
             guessInput.value = '';
             guessInput.focus();
             return;
         }
+        // MAX_POSSIBLE_DISTANCE check can remain or be adjusted
+        // const submissionResult = game.submitGuess(guess); // Call new game logic
+        // if (submissionResult.needsValidInput) { // Example of handling specific error from game.submitGuess
+        //     feedbackDisplay.textContent = "Guessed distance cannot be negative (from game logic).";
+        //     feedbackDisplay.className = 'feedback-error';
+        //     guessInput.value = '';
+        //     guessInput.focus();
+        //     return;
+        // }
 
         console.log(`UI: Guess submitted: ${guess}`);
-        const result = game.submitGuess(guess);
+        const result = game.submitGuess(guess); // Use the JS game object
 
         let feedbackMessage = "";
         if (result.correct) {
             let percentageOff = 0;
-            if (game.actualDistance !== 0) {
+            if (game.actualDistance !== 0) { // Avoid division by zero if actual distance is 0
                 percentageOff = (result.error / game.actualDistance) * 100;
             }
+            // If actualDistance is 0 and guess is correct, error is 0, so percentageOff remains 0.
             feedbackMessage = `Correct! Your guess ${guess.toFixed(3)} was ${percentageOff.toFixed(1)}% off the actual distance ${game.actualDistance.toFixed(3)}.`;
             feedbackDisplay.className = 'feedback-correct';
+            feedbackDisplay.style.color = ''; // Reset color
         } else {
             feedbackMessage = `Incorrect. Your guess was ${guess.toFixed(3)}. Actual distance: ${game.actualDistance.toFixed(3)}.`;
             if (guess > game.actualDistance) {
@@ -243,12 +304,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 feedbackMessage += " You guessed too low.";
             }
             feedbackDisplay.className = 'feedback-incorrect';
+            feedbackDisplay.style.color = ''; // Reset color
         }
         feedbackMessage += ` (Error: ${result.error.toFixed(3)})`;
         feedbackDisplay.textContent = feedbackMessage;
-
-        // Show the actual distance line
-        showActualDistance();
 
         if(livesCountDisplay) livesCountDisplay.textContent = game.lives;
         if(meanErrorDisplay && game.errorScores.length > 0) {
@@ -259,6 +318,8 @@ document.addEventListener('DOMContentLoaded', () => {
             setGameState(GAME_STATES.GAME_OVER);
         } else {
             setGameState(GAME_STATES.SHOWING_FEEDBACK);
+            // Render the distance line after feedback is set
+            renderDistanceLine(game.currentDot1, game.currentDot2, result.correct);
         }
     }
 
@@ -289,6 +350,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (game.isGameOver()) { // Should already be handled by submit, but double check
                     setGameState(GAME_STATES.GAME_OVER);
                 } else {
+                    // Clear the old line before setting up a new problem
+                    const existingLine = coordinatePlane.querySelector('.distance-line');
+                    if (existingLine) {
+                        existingLine.remove();
+                    }
                     game.nextRound(); // Advances game logic to new round
                     setupNewProblem(); // Updates UI with new dots from game logic
                     setGameState(GAME_STATES.ACTIVE_GAME);
@@ -299,12 +365,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (restartGameButton) {
         restartGameButton.addEventListener('click', () => {
-            // Allow restart from GAME_OVER or even if player clicks it while feedback is shown (e.g. if they want to quit early)
+            // Allow restart from GAME_OVER or even if player clicks it while feedback is shown
             if (currentGameState === GAME_STATES.GAME_OVER || currentGameState === GAME_STATES.SHOWING_FEEDBACK) {
-                console.log("Restart Game button clicked - direct to active game");
-                initializeGameLogic(); // Resets game data and starts a new round internally
-                setupNewProblem();     // Renders the new problem (dots, reset UI stats)
-                setGameState(GAME_STATES.ACTIVE_GAME); // Switch to active game view
+                console.log("Restart Game button clicked");
+                const existingLine = coordinatePlane.querySelector('.distance-line');
+                if (existingLine) {
+                    existingLine.remove();
+                }
+                initializeGameLogic(); // Resets game data and starts a new round internally (populates game.currentDot1/2)
+                setGameState(GAME_STATES.ACTIVE_GAME); // Switch to active game view, makes plane visible
+
+                // Defer rendering of dots until the coordinatePlane is surely visible and has dimensions
+                requestAnimationFrame(() => {
+                    // Double-check dimensions before rendering
+                    if (coordinatePlane.clientWidth > 0 && coordinatePlane.clientHeight > 0) {
+                        setupNewProblem(); // Renders dots using the (newly generated) coordinates
+                    } else {
+                        // Fallback
+                        console.warn("Coordinate plane dimensions not ready after rAF on restart, trying setTimeout");
+                        setTimeout(() => {
+                            setupNewProblem();
+                        }, 50); // Brief delay
+                    }
+                });
             }
         });
     }
