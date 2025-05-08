@@ -6,6 +6,7 @@ body {
     margin: 0;
     font-family: sans-serif;
     background-color: #f0f0f0;
+    overflow-y: scroll; /* Prevent layout shifts from scrollbar appearing/disappearing */
 }
 
 #game-container {
@@ -16,17 +17,22 @@ body {
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    width: 90%;
-    max-width: 500px; /* Max width for larger screens */
+    width: 90vw; /* Flexible width */
+    max-width: 400px; /* Max width for larger screens */
+    margin-left: auto; /* Ensure centering */
+    margin-right: auto; /* Ensure centering */
 }
 
 #coordinate-plane {
-    width: 100%;
-    padding-bottom: 100%; /* This creates a square aspect ratio (height = width) */
+    width: 100%; /* Take full width of parent less padding */
+    max-width: 300px; /* Maintain original max size */
+    aspect-ratio: 1 / 1; /* Keep it square */
     background-color: #e0e0e0;
     position: relative;
     border: 1px solid #ccc;
     margin-bottom: 20px;
+    margin-left: auto; /* Added for robust centering */
+    margin-right: auto; /* Added for robust centering */
     overflow: hidden; /* Ensures dots don't go outside if positioned at edges */
 }
 
@@ -36,6 +42,7 @@ body {
     border-radius: 50%;
     position: absolute;
     transform: translate(-50%, -50%); /* Center the dot on its coordinates */
+    z-index: 1; /* Ensure dots are above the line */
 }
 
 #controls {
@@ -44,6 +51,7 @@ body {
     flex-wrap: wrap; /* Allow controls to wrap on smaller screens */
     justify-content: center;
     align-items: center;
+    min-height: 45px; /* Added to stabilize height for consistent layout */
 }
 
 #controls label {
@@ -73,15 +81,18 @@ body {
 }
 
 #feedback {
-    margin-bottom: 10px;
-    font-size: 1.1em;
-    min-height: 2.4em; /* Increased to better accommodate one or two lines of feedback consistently */
-    /* Consider adding a max-height as well if feedback can be very long */
-    /* Or ensure consistent line-wrapping behavior */
-    display: flex; /* Added to help with vertical alignment if needed */
-    align-items: center; /* Vertically center text if it's a single line in a fixed height box */
-    justify-content: center; /* Horizontally center text */
-    text-align: center; /* Ensure text inside is centered */
+    padding: 10px;
+    margin-top: 15px;
+    border-radius: 5px;
+    font-weight: bold;
+    transition: background-color 0.3s ease, color 0.3s ease, border 0.3s ease;
+    border: 2px solid transparent;
+    min-height: 98px; /* Reverted to min-height */
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
 }
 
 #stats p {
@@ -127,6 +138,7 @@ body {
     transform-origin: 0 50%; /* Rotate around the starting point (left-center) */
     opacity: 0;
     animation: lineAppearAnimation 0.5s ease-out forwards 0.2s; /* Appear after dots */
+    z-index: 0; /* Ensure line is below the dots */
 }
 
 @keyframes lineAppearAnimation {
@@ -160,15 +172,6 @@ body {
 
 
 /* Enhanced Feedback Visual Cues */
-#feedback {
-    padding: 10px;
-    margin-top: 15px;
-    border-radius: 5px;
-    font-weight: bold;
-    transition: background-color 0.3s ease, color 0.3s ease, border 0.3s ease;
-    border: 2px solid transparent;
-}
-
 .feedback-correct {
     background-color: #e8f5e9; /* Light green */
     color: #2e7d32; /* Dark green text */

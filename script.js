@@ -31,13 +31,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const CORRECT_ENOUGH_PERCENTAGE = 0.15;
     const INITIAL_LIVES = 3;
     const MAX_LIVES = 5;
+    const DOT_SPAWN_MARGIN = 0.05; // Added margin for dot spawning
 
     // Centralized game state object, mirroring Python's Game class
     let game = {};
 
     function generateCoordinate() {
-        // Generates a random coordinate between 0 and 1
-        return Math.random();
+        // Generates a random coordinate between 0+margin and 1-margin
+        return Math.random() * (1 - 2 * DOT_SPAWN_MARGIN) + DOT_SPAWN_MARGIN;
     }
 
     function generateDot() {
@@ -57,9 +58,18 @@ document.addEventListener('DOMContentLoaded', () => {
         dotElement.classList.add('dot-appear'); // Added for animation
         dotElement.id = id;
         dotElement.style.backgroundColor = color;
-        // Convert 0-1 coordinates to percentage for CSS positioning
-        dotElement.style.left = `${x * 100}%`;
-        dotElement.style.top = `${y * 100}%`;
+
+        // Get coordinate plane dimensions in pixels
+        const planeWidth = coordinatePlane.clientWidth;
+        const planeHeight = coordinatePlane.clientHeight;
+
+        // Convert relative coordinates to absolute pixels
+        const xPixels = x * planeWidth;
+        const yPixels = y * planeHeight;
+
+        // Convert 0-1 coordinates to absolute pixels for CSS positioning
+        dotElement.style.left = `${xPixels}px`;
+        dotElement.style.top = `${yPixels}px`;
         coordinatePlane.appendChild(dotElement);
         return dotElement;
     }
@@ -77,25 +87,27 @@ document.addEventListener('DOMContentLoaded', () => {
         const lineElement = document.createElement('div');
         lineElement.classList.add('distance-line');
 
-        const deltaX = p2.x - p1.x;
-        const deltaY = p2.y - p1.y;
-        const length = Math.sqrt(deltaX * deltaX + deltaY * deltaY) * 100; // Percentage of plane width/height
+        // Get coordinate plane dimensions in pixels
+        const planeWidth = coordinatePlane.clientWidth;
+        const planeHeight = coordinatePlane.clientHeight;
+
+        // Convert relative coordinates to absolute pixels
+        const x1 = p1.x * planeWidth;
+        const y1 = p1.y * planeHeight;
+        const x2 = p2.x * planeWidth;
+        const y2 = p2.y * planeHeight;
+
+        const deltaX = x2 - x1;
+        const deltaY = y2 - y1;
+        const length = Math.sqrt(deltaX * deltaX + deltaY * deltaY); // Absolute pixels
         const angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI); // Angle in degrees
 
-        // Assuming coordinatePlane is square for simplicity in scaling length.
-        // The actual distance is in 0-1 units, so length * 100 gives percentage of plane size.
-        // For positioning, use the midpoint and CSS transforms.
-        const midX = (p1.x + p2.x) / 2 * 100; // Midpoint X in percentage
-        const midY = (p1.y + p2.y) / 2 * 100; // Midpoint Y in percentage
-
-        lineElement.style.width = `${length}%`;
-        lineElement.style.position = 'absolute'; // Position relative to coordinatePlane
-        // Adjust left/top to be the start of the line, then transform origin for rotation
-        lineElement.style.left = `${p1.x * 100}%`;
-        lineElement.style.top = `${p1.y * 100}%`;
-        lineElement.style.transformOrigin = '0 50%'; // Rotate around the starting point (left-center)
-        lineElement.style.transform = `translateY(-50%) rotate(${angle}deg)`; // Center line vertically then rotate
-
+        lineElement.style.width = `${length}px`;
+        lineElement.style.position = 'absolute';
+        lineElement.style.left = `${x1}px`;
+        lineElement.style.top = `${y1}px`;
+        lineElement.style.transformOrigin = '0 50%'; // Rotate around the line's start-point, vertical center
+        lineElement.style.transform = `translateY(-1.5px) rotate(${angle}deg)`; // Adjust for exact half of line thickness
 
         // Style based on correctness
         if (isCorrectGuess) {
@@ -106,7 +118,6 @@ document.addEventListener('DOMContentLoaded', () => {
              lineElement.classList.add('line-incorrect-animation');
         }
         lineElement.style.height = '3px'; // Line thickness
-
 
         coordinatePlane.appendChild(lineElement);
     }
@@ -138,6 +149,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 submitButton.disabled = false;
                 nextButton.style.display = 'none';
                 feedbackDisplay.textContent = ''; // Clear previous feedback
+                feedbackDisplay.classList.remove('feedback-correct', 'feedback-incorrect', 'feedback-error'); // Reset classes
+                feedbackDisplay.style.color = ''; // Ensure text color resets if it was directly set
                 feedbackDisplay.style.display = 'block';
                 console.log("State: ACTIVE_GAME");
                 break;
@@ -218,9 +231,23 @@ document.addEventListener('DOMContentLoaded', () => {
         startGameButton.addEventListener('click', () => {
             if (currentGameState === GAME_STATES.START_SCREEN) {
                 console.log("Start Game button clicked");
-                // Game logic is already initialized, including first round's dots
-                setupNewProblem(); // Render the first problem
-                setGameState(GAME_STATES.ACTIVE_GAME);
+                // Game logic is already initialized (game.startNewRound() called in initializeGameLogic)
+                // Dots for the first round are already generated in game.currentDot1 and game.currentDot2
+                setGameState(GAME_STATES.ACTIVE_GAME); // This will make the game area visible
+
+                // Defer rendering of dots until the coordinatePlane is surely visible and has dimensions
+                requestAnimationFrame(() => {
+                    // Double-check dimensions before rendering
+                    if (coordinatePlane.clientWidth > 0 && coordinatePlane.clientHeight > 0) {
+                        setupNewProblem(); // Renders dots using the already generated coordinates
+                    } else {
+                        // Fallback if dimensions are still not ready (e.g., complex CSS or very slow rendering)
+                        console.warn("Coordinate plane dimensions not ready after rAF on start, trying setTimeout");
+                        setTimeout(() => {
+                            setupNewProblem();
+                        }, 50); // Brief delay, adjust if necessary
+                    }
+                });
             }
         });
     }
@@ -338,17 +365,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (restartGameButton) {
         restartGameButton.addEventListener('click', () => {
-            // Allow restart from GAME_OVER or even if player clicks it while feedback is shown (e.g. if they want to quit early)
+            // Allow restart from GAME_OVER or even if player clicks it while feedback is shown
             if (currentGameState === GAME_STATES.GAME_OVER || currentGameState === GAME_STATES.SHOWING_FEEDBACK) {
-                console.log("Restart Game button clicked - direct to active game");
-                // Clear the old line if restarting from feedback state
+                console.log("Restart Game button clicked");
                 const existingLine = coordinatePlane.querySelector('.distance-line');
                 if (existingLine) {
                     existingLine.remove();
                 }
-                initializeGameLogic(); // Resets game data and starts a new round internally
-                setupNewProblem();     // Renders the new problem (dots, reset UI stats)
-                setGameState(GAME_STATES.ACTIVE_GAME); // Switch to active game view
+                initializeGameLogic(); // Resets game data and starts a new round internally (populates game.currentDot1/2)
+                setGameState(GAME_STATES.ACTIVE_GAME); // Switch to active game view, makes plane visible
+
+                // Defer rendering of dots until the coordinatePlane is surely visible and has dimensions
+                requestAnimationFrame(() => {
+                    // Double-check dimensions before rendering
+                    if (coordinatePlane.clientWidth > 0 && coordinatePlane.clientHeight > 0) {
+                        setupNewProblem(); // Renders dots using the (newly generated) coordinates
+                    } else {
+                        // Fallback
+                        console.warn("Coordinate plane dimensions not ready after rAF on restart, trying setTimeout");
+                        setTimeout(() => {
+                            setupNewProblem();
+                        }, 50); // Brief delay
+                    }
+                });
             }
         });
     }
