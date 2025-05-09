@@ -11,6 +11,31 @@
         <div id="start-screen" style="display: none;">
             <h1>Welcome to DotGuess!</h1>
             <p>Estimate the distance between the two dots.</p>
+
+            <div id="game-mode-selection">
+                <p>Select Game Mode:</p>
+                <label>
+                    <input type="radio" name="gameMode" id="classicModeRadio" value="CLASSIC" checked>
+                    Classic
+                </label>
+                <label>
+                    <input type="radio" name="gameMode" id="timeTrialModeRadio" value="TIME_TRIAL">
+                    Time Trial
+                </label>
+
+                <div id="time-trial-duration-selection" style="display: none; margin-left: 20px; margin-top: 5px;">
+                    <p style="margin-bottom: 3px;">Select Duration:</p>
+                    <label>
+                        <input type="radio" name="timeTrialDuration" id="timeTrial15sRadio" value="15" checked>
+                        15 seconds
+                    </label>
+                    <label>
+                        <input type="radio" name="timeTrialDuration" id="timeTrial30sRadio" value="30">
+                        30 seconds
+                    </label>
+                </div>
+            </div>
+
             <button id="start-game-button">Start Game</button>
         </div>
 
@@ -28,20 +53,23 @@
                 <!-- Feedback will be displayed here -->
             </div>
             <div id="stats">
-                <p>Lives: <span id="lives-count">3</span></p>
+                <p id="lives-display">Lives: <span id="lives-count">3</span></p>
+                <p id="timer-display" style="display: none;">Time: <span id="time-remaining">60</span></p>
                 <p>Mean Error: <span id="mean-error">N/A</span></p>
                 <p>Round: <span id="round-count">0</span></p>
+                <p id="score-display">Score: <span id="current-score">0</span></p>
             </div>
         </div>
 
         <div id="game-over-screen" style="display: none;">
             <h1>Game Over!</h1>
             <p>Your final stats:</p>
+            <p id="final-score-display">Final Score: <span id="final-score">0</span></p>
             <p>Rounds Played: <span id="final-rounds">0</span></p>
             <p>Mean Error: <span id="final-mean-error">N/A</span></p>
             <button id="restart-game-button">Restart Game</button>
         </div>
     </div>
-    <script src="script.js"></script>
+    <script type="module" src="js/main.js"></script>
 </body>
 </html>
